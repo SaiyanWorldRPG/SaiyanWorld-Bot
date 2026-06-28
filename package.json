@@ -1,0 +1,14 @@
+{
+  "name": "saiyanworld-bot",
+  "version": "1.0.0",
+  "description": "Bot do Discord criado por Paulo Henrique",
+  "main": "bot.js",
+  "scripts": {
+    "start": "node bot.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.4.5",
+    "axios": "^1.6.7"
+  }
+}
