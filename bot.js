@@ -16,18 +16,24 @@ const client = new Client({
 // ===============================
 // CONFIGURAÇÕES DO SERVIDOR RAILWAY
 // ===============================
-const RAILWAY_URL = process.env.RAILWAY_URL; 
-// Exemplo no .env:
-// RAILWAY_URL=https://pokemon-rewards-production.up.railway.app/update
+// URL DIRETA E CORRETA DO SEU SERVIDOR
+const RAILWAY_URL = "https://pokemon-rewards-production.up.railway.app/update";
+
+// Log para garantir que a URL está correta
+console.log("URL do servidor de recompensas:", RAILWAY_URL);
 
 // Função para atualizar recompensas no Railway
 async function updateRewards(playerId, reward) {
     try {
+        console.log("Enviando recompensa para:", RAILWAY_URL);
+        console.log("Payload:", { playerId, reward });
+
         await axios.post(RAILWAY_URL, {
             playerId,
             reward
         });
 
+        console.log("Recompensa enviada com sucesso!");
         return true;
     } catch (err) {
         console.error("Erro ao atualizar recompensas:", err);
