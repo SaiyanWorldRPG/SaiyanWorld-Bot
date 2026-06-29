@@ -102,4 +102,4 @@ client.on("ready", () => {
   console.log(`Bot online como ${client.user.tag}`);
 });
 
-client.login("SEU_TOKEN_DO_DISCORD");
+client.login(process.env.DISCORD_TOKEN);
