@@ -1,11 +1,17 @@
-require("dotenv").config();
+// NÃO usar dotenv no Railway
 const { Octokit } = require("@octokit/rest");
 const axios = require("axios");
 const fs = require("fs");
 
 // Discord.js
 const { Client, GatewayIntentBits } = require("discord.js");
-const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent] });
+const client = new Client({
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent
+  ]
+});
 
 // GitHub API
 const octokit = new Octokit({
@@ -102,4 +108,5 @@ client.on("ready", () => {
   console.log(`Bot online como ${client.user.tag}`);
 });
 
+// Usa o token do Railway
 client.login(process.env.DISCORD_TOKEN);
