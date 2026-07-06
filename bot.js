@@ -75,7 +75,10 @@ client.on("messageCreate", async (msg) => {
 
   const args = msg.content.split(" ");
 
-  const playerId = args[1];
+  // Ajuste CRÍTICO: padronizar ID para 5 dígitos (igual ao jogo)
+  const rawId = args[1];
+  const playerId = rawId.padStart(5, "0");
+
   const type = args[2];
   const species = args[3];
   const level = parseInt(args[4]);
@@ -95,7 +98,7 @@ client.on("messageCreate", async (msg) => {
   const ok = await saveRewardsJSON(json, sha);
 
   if (ok) {
-    msg.reply("Recompensa enviada com sucesso!");
+    msg.reply(`Recompensa enviada para o jogador ${playerId}!`);
   } else {
     msg.reply("Erro ao enviar recompensa.");
   }
