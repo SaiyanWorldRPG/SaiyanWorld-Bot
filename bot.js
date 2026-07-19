@@ -21,7 +21,9 @@ const octokit = new Octokit({
 // Dados do repositório
 const owner = process.env.GITHUB_USER;
 const repo = process.env.GITHUB_REPO;
-const filePath = process.env.GITHUB_FILE_PATH;
+
+// *** IMPORTANTE: rewards.json está dentro da pasta /docs ***
+const filePath = "docs/rewards.json";
 
 // -----------------------------------------------------------
 // Função: baixar o rewards.json do GitHub
@@ -108,7 +110,7 @@ client.on("messageCreate", async (msg) => {
 // Webhook: limpar recompensas após o jogo receber
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
-  if (!msg.content.startsWith("{")) return; // só processa JSON
+  if (!msg.content.startsWith("{")) return; // só processa JSON enviado pelo jogo
 
   try {
     const payload = JSON.parse(msg.content);
