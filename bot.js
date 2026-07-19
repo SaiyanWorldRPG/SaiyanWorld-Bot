@@ -22,11 +22,11 @@ const octokit = new Octokit({
 const owner = process.env.GITHUB_USER;
 const repo = process.env.GITHUB_REPO;
 
-// *** IMPORTANTE: rewards.json está dentro da pasta /docs ***
+// rewards.json está dentro de /docs
 const filePath = "docs/rewards.json";
 
 // -----------------------------------------------------------
-// Função: baixar o rewards.json do GitHub
+// Baixar JSON
 // -----------------------------------------------------------
 async function getRewardsJSON() {
   try {
@@ -46,7 +46,7 @@ async function getRewardsJSON() {
 }
 
 // -----------------------------------------------------------
-// Função: salvar o rewards.json no GitHub
+// Salvar JSON
 // -----------------------------------------------------------
 async function saveRewardsJSON(newJSON, sha) {
   try {
@@ -70,14 +70,12 @@ async function saveRewardsJSON(newJSON, sha) {
 }
 
 // -----------------------------------------------------------
-// Comando: !give <playerId> pokemon CHARMANDER 15
+// Comando !give
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
   if (!msg.content.startsWith("!give")) return;
 
   const args = msg.content.split(" ");
-
-  // Padroniza ID para 5 dígitos
   const rawId = args[1];
   const playerId = rawId.padStart(5, "0");
 
@@ -99,42 +97,51 @@ client.on("messageCreate", async (msg) => {
 
   const ok = await saveRewardsJSON(json, sha);
 
-  if (ok) {
-    msg.reply(`Recompensa enviada para o jogador ${playerId}!`);
-  } else {
-    msg.reply("Erro ao enviar recompensa.");
-  }
+  msg.reply(ok ? `Recompensa enviada para ${playerId}!` : "Erro ao enviar recompensa.");
 });
 
 // -----------------------------------------------------------
-// Webhook: limpar recompensas após o jogo receber
+// Webhook de limpeza — AGORA FUNCIONA
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
-  if (!msg.content.startsWith("{")) return; // só processa JSON enviado pelo jogo
+  let payload = null;
 
+  // 1. JSON puro
   try {
-    const payload = JSON.parse(msg.content);
-
-    if (payload.type !== "clear_rewards") return;
-
-    const playerId = payload.player_id;
-
-    console.log("Recebido CLEAR para:", playerId);
-
-    const { json, sha } = await getRewardsJSON();
-
-    if (json[playerId]) {
-      delete json[playerId];
-      console.log("Recompensas removidas com sucesso!");
-    } else {
-      console.log("ID não encontrado no JSON.");
+    if (msg.content.trim().startsWith("{")) {
+      payload = JSON.parse(msg.content);
     }
+  } catch {}
 
-    await saveRewardsJSON(json, sha);
-
-  } catch (err) {
-    console.error("Erro ao processar webhook:", err);
+  // 2. Embed enviado pelo jogo
+  if (!payload && msg.embeds.length > 0) {
+    try {
+      const embed = msg.embeds[0];
+      if (embed.description && embed.description.trim().startsWith("{")) {
+        payload = JSON.parse(embed.description);
+      }
+    } catch {}
   }
+
+  // Se ainda não achou JSON, ignora
+  if (!payload) return;
+
+  // Verifica se é o webhook correto
+  if (payload.type !== "clear_rewards") return;
+
+  const playerId = payload.player_id;
+  console.log("Webhook CLEAR recebido para:", playerId);
+
+  const { json, sha } = await getRewardsJSON();
+
+  if (json[playerId]) {
+    delete json[playerId];
+    console.log("Recompensas removidas com sucesso!");
+  } else {
+    console.log("ID não encontrado no JSON.");
+  }
+
+  await saveRewardsJSON(json, sha);
 });
 
 // -----------------------------------------------------------
@@ -144,5 +151,4 @@ client.on("ready", () => {
   console.log(`Bot online como ${client.user.tag}`);
 });
 
-// Usa o token do Railway
 client.login(process.env.DISCORD_TOKEN);
