@@ -68,7 +68,7 @@ async function saveRewardsJSON(newJSON, sha) {
 }
 
 // -----------------------------------------------------------
-// Comando !give
+// Comando !give <playerId> pokemon CHARMANDER 15
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
   if (!msg.content.startsWith("!give")) return;
@@ -97,65 +97,6 @@ client.on("messageCreate", async (msg) => {
   const ok = await saveRewardsJSON(json, sha);
 
   msg.reply(ok ? `Recompensa enviada para ${playerId}!` : "Erro ao enviar recompensa.");
-});
-
-// -----------------------------------------------------------
-// WEBHOOK DE LIMPEZA — VERSÃO DEFINITIVA
-// -----------------------------------------------------------
-client.on("messageCreate", async (msg) => {
-  let payload = null;
-
-  // 1. JSON puro
-  try {
-    if (msg.content.trim().startsWith("{")) {
-      payload = JSON.parse(msg.content);
-    }
-  } catch {}
-
-  // 2. JSON dentro de bloco de código ```json
-  if (!payload && msg.content.includes("{") && msg.content.includes("}")) {
-    try {
-      const extracted = msg.content.substring(
-        msg.content.indexOf("{"),
-        msg.content.lastIndexOf("}") + 1
-      );
-      payload = JSON.parse(extracted);
-    } catch {}
-  }
-
-  // 3. JSON dentro de embed
-  if (!payload && msg.embeds.length > 0) {
-    const embed = msg.embeds[0];
-    if (embed.description) {
-      try {
-        const desc = embed.description.trim();
-        if (desc.startsWith("{")) {
-          payload = JSON.parse(desc);
-        }
-      } catch {}
-    }
-  }
-
-  // Se ainda não achou JSON, ignora
-  if (!payload) return;
-
-  // Verifica se é o webhook correto
-  if (payload.type !== "clear_rewards") return;
-
-  const playerId = payload.player_id;
-
-  console.log("Webhook CLEAR recebido para:", playerId);
-
-  const { json, sha } = await getRewardsJSON();
-
-  if (json[playerId]) {
-    delete json[playerId];
-    console.log("Recompensas removidas com sucesso!");
-  } else {
-    console.log("ID não encontrado no JSON.");
-  }
-
-  await saveRewardsJSON(json, sha);
 });
 
 // -----------------------------------------------------------
