@@ -100,6 +100,35 @@ client.on("messageCreate", async (msg) => {
 });
 
 // -----------------------------------------------------------
+// Comando !coins <playerId> <quantidade>
+// -----------------------------------------------------------
+client.on("messageCreate", async (msg) => {
+  if (!msg.content.startsWith("!coins")) return;
+
+  const args = msg.content.split(" ");
+
+  const rawId = args[1];
+  const playerId = rawId.padStart(5, "0");
+
+  const amount = parseInt(args[2]);
+
+  console.log(`Enviando ${amount} Saiyan Coins para o jogador ${playerId}`);
+
+  const { json, sha } = await getRewardsJSON();
+
+  if (!json[playerId]) json[playerId] = [];
+
+  json[playerId].push({
+    type: "coins",
+    amount: amount
+  });
+
+  const ok = await saveRewardsJSON(json, sha);
+
+  msg.reply(ok ? `${amount} Saiyan Coins enviadas para ${playerId}!` : "Erro ao enviar Saiyan Coins.");
+});
+
+// -----------------------------------------------------------
 // Bot online
 // -----------------------------------------------------------
 client.on("ready", () => {
