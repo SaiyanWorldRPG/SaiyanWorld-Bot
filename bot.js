@@ -1,10 +1,8 @@
 // NÃO usar dotenv no Railway
 const { Octokit } = require("@octokit/rest");
-const axios = require("axios");
-const fs = require("fs");
+const { Client, GatewayIntentBits } = require("discord.js");
 
 // Discord.js
-const { Client, GatewayIntentBits } = require("discord.js");
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
@@ -76,6 +74,7 @@ client.on("messageCreate", async (msg) => {
   if (!msg.content.startsWith("!give")) return;
 
   const args = msg.content.split(" ");
+
   const rawId = args[1];
   const playerId = rawId.padStart(5, "0");
 
@@ -101,7 +100,7 @@ client.on("messageCreate", async (msg) => {
 });
 
 // -----------------------------------------------------------
-// Webhook de limpeza — AGORA FUNCIONA
+// WEBHOOK DE LIMPEZA — VERSÃO DEFINITIVA
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
   let payload = null;
@@ -113,14 +112,28 @@ client.on("messageCreate", async (msg) => {
     }
   } catch {}
 
-  // 2. Embed enviado pelo jogo
-  if (!payload && msg.embeds.length > 0) {
+  // 2. JSON dentro de bloco de código ```json
+  if (!payload && msg.content.includes("{") && msg.content.includes("}")) {
     try {
-      const embed = msg.embeds[0];
-      if (embed.description && embed.description.trim().startsWith("{")) {
-        payload = JSON.parse(embed.description);
-      }
+      const extracted = msg.content.substring(
+        msg.content.indexOf("{"),
+        msg.content.lastIndexOf("}") + 1
+      );
+      payload = JSON.parse(extracted);
     } catch {}
+  }
+
+  // 3. JSON dentro de embed
+  if (!payload && msg.embeds.length > 0) {
+    const embed = msg.embeds[0];
+    if (embed.description) {
+      try {
+        const desc = embed.description.trim();
+        if (desc.startsWith("{")) {
+          payload = JSON.parse(desc);
+        }
+      } catch {}
+    }
   }
 
   // Se ainda não achou JSON, ignora
@@ -130,6 +143,7 @@ client.on("messageCreate", async (msg) => {
   if (payload.type !== "clear_rewards") return;
 
   const playerId = payload.player_id;
+
   console.log("Webhook CLEAR recebido para:", playerId);
 
   const { json, sha } = await getRewardsJSON();
