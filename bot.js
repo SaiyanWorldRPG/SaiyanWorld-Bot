@@ -68,7 +68,7 @@ async function saveRewardsJSON(newJSON, sha) {
 }
 
 // -----------------------------------------------------------
-// Comando !give <playerId> pokemon CHARMANDER 15
+// Comando !give <playerId> <species> <level>
 // -----------------------------------------------------------
 client.on("messageCreate", async (msg) => {
   if (!msg.content.startsWith("!give")) return;
@@ -78,25 +78,55 @@ client.on("messageCreate", async (msg) => {
   const rawId = args[1];
   const playerId = rawId.padStart(5, "0");
 
-  const type = args[2];
-  const species = args[3];
-  const level = parseInt(args[4]);
+  const species = args[2];
+  const level = parseInt(args[3]);
 
-  console.log(`Enviando recompensa para o jogador ${playerId}`);
+  console.log(`Enviando Pokémon ${species} Nv.${level} para o jogador ${playerId}`);
 
   const { json, sha } = await getRewardsJSON();
 
   if (!json[playerId]) json[playerId] = [];
 
   json[playerId].push({
-    type,
-    species,
-    level
+    type: "pokemon",
+    species: species,
+    level: level
   });
 
   const ok = await saveRewardsJSON(json, sha);
 
-  msg.reply(ok ? `Recompensa enviada para ${playerId}!` : "Erro ao enviar recompensa.");
+  msg.reply(ok ? `Pokémon ${species} Nv.${level} enviado para ${playerId}!` : "Erro ao enviar Pokémon.");
+});
+
+// -----------------------------------------------------------
+// Comando !item <playerId> <item> <qty>
+// -----------------------------------------------------------
+client.on("messageCreate", async (msg) => {
+  if (!msg.content.startsWith("!item")) return;
+
+  const args = msg.content.split(" ");
+
+  const rawId = args[1];
+  const playerId = rawId.padStart(5, "0");
+
+  const item = args[2];
+  const qty = parseInt(args[3]);
+
+  console.log(`Enviando ${qty}x ${item} para o jogador ${playerId}`);
+
+  const { json, sha } = await getRewardsJSON();
+
+  if (!json[playerId]) json[playerId] = [];
+
+  json[playerId].push({
+    type: "item",
+    item: item,
+    qty: qty
+  });
+
+  const ok = await saveRewardsJSON(json, sha);
+
+  msg.reply(ok ? `${qty}x ${item} enviados para ${playerId}!` : "Erro ao enviar item.");
 });
 
 // -----------------------------------------------------------
