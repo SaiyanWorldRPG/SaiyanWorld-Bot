@@ -1,5 +1,5 @@
 // =============================================================================
-// BOT DO DISCORD + SERVIDOR WEB PARA LIMPEZA NO GITHUB
+// BOT DO DISCORD + SERVIDOR WEB INTEGRADO COM O JOGO
 // =============================================================================
 const { Octokit } = require("@octokit/rest");
 const { Client, GatewayIntentBits } = require("discord.js");
@@ -7,6 +7,7 @@ const express = require("express");
 
 const app = express();
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // ESSENCIAL: Lê os dados enviados pelo pbPostToString do jogo
 
 // Discord.js Client
 const client = new Client({
@@ -50,7 +51,7 @@ async function saveRewardsJSON(newJSON, sha) {
       owner,
       repo,
       path: filePath,
-      message: "Atualizar recompensas via Bot",
+      message: "Atualizar recompensas via Servidor/Bot",
       content: contentEncoded,
       sha
     });
@@ -62,12 +63,13 @@ async function saveRewardsJSON(newJSON, sha) {
 }
 
 // -----------------------------------------------------------
-// ROTA /clear (Chamada pelo jogo RPG Maker para apagar recompensas)
+// ROTA /clear (Chamada pelo jogo RPG Maker via pbPostToString)
 // -----------------------------------------------------------
 app.post("/clear", async (req, res) => {
-    const { playerId } = req.body;
+    const playerId = req.body.playerId;
 
     if (!playerId) {
+        console.error("Tentativa de limpeza sem playerId no corpo da requisição.");
         return res.status(400).json({ error: "playerId ausente" });
     }
 
